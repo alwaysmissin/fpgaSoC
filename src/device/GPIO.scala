@@ -11,7 +11,7 @@ import freechips.rocketchip.util._
 class GPIOIO extends Bundle {
   val out = Output(UInt(16.W))
   val in = Input(UInt(16.W))
-  val seg = Output(Vec(8, UInt(8.W)))
+  // val seg = Output(Vec(8, UInt(8.W)))
 }
 
 class GPIOCtrlIO extends Bundle {
@@ -58,11 +58,11 @@ class gpioChisel extends Module {
   io.gpio.out <> gpioOutReg
 //  io.gpio.seg <> segReg
   gpioInReg := io.gpio.in
-  for (i <- 0 until 8){
-    val seg = Module(new BitsToSeg)
-    seg.io.in := segReg(i*4+3, i*4)
-    io.gpio.seg(i) := seg.io.seg
-  }
+  // for (i <- 0 until 8){
+  //   val seg = Module(new BitsToSeg)
+  //   seg.io.in := segReg(i*4+3, i*4)
+  //   io.gpio.seg(i) := seg.io.seg
+  // }
   val writeMask = Cat(Fill(8, io.in.pstrb(3)), Fill(8, io.in.pstrb(2)), Fill(8, io.in.pstrb(1)), Fill(8, io.in.pstrb(0)))
   val pready = RegInit(false.B)
   val prdata = RegInit(0.U(32.W))

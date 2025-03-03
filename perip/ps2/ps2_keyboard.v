@@ -2,7 +2,7 @@ module ps2_keyboard(clk,clrn,ps2_clk,ps2_data,data,
                     ready,nextdata_n,overflow);
     input clk,clrn,ps2_clk,ps2_data;
     input nextdata_n;
-    output reg [7:0] data;
+    output [7:0] data;
     output reg ready;
     output reg overflow;     // fifo overflow
     reg [2:0] w_ptr,r_ptr;   // fifo write and read pointers

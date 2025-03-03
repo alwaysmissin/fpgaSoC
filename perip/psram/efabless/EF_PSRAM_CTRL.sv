@@ -39,7 +39,7 @@
 */
 
 `timescale              1ns/1ps
-`default_nettype        none
+// `default_nettype        none
 
 module PSRAM_READER (
     input   wire            clk,

@@ -15,7 +15,7 @@
 */
 
 `timescale              1ns/1ps
-`default_nettype        none
+// `default_nettype        none
 
 // Using EBH Command
 module EF_PSRAM_CTRL_wb (

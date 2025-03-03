@@ -7,6 +7,7 @@ import freechips.rocketchip.amba.apb._
 import org.chipsalliance.cde.config.Parameters
 import freechips.rocketchip.diplomacy._
 import freechips.rocketchip.util._
+import ysyx.SDPRAM_SYNC
 
 class VGAIO extends Bundle {
   val r = Output(UInt(8.W))
@@ -51,7 +52,9 @@ class vgaChisel extends RawModule {
     val vga_ctrl = Module(new vga_ctrl())
     vga_ctrl.io.pclk <> io.clock
     vga_ctrl.io.reset <> io.reset
-    val g_memory = Mem(0x7FFFF, UInt(24.W))
+    // val g_memory = Mem(0x7FFFF, UInt(24.W))
+    // val g_memory = SDPRAM_SYNC(0x7FFFF, UInt(24.W))
+    val g_memory = Module(new SDPRAM_SYNC(0x7FFFF, UInt(24.W)))
     // loadMemoryFromFileInline(g_memory, "/home/jiunian/Program/ysyx-workbench/nvboard/example/resource/test.hex")
 
     // write to gpu memory
@@ -59,18 +62,25 @@ class vgaChisel extends RawModule {
     io.in.pslverr := false.B
     io.in.pready <> pready
     io.in.prdata := 0.U(32.W)
-      when (io.in.psel) {
-        pready := true.B
-        when (io.in.pwrite){
-          g_memory.write(io.in.paddr(22, 2), io.in.pwdata(23, 0))
-        }
-      } otherwise {
-        pready := false.B
+
+    val wen = WireDefault(false.B)
+    g_memory.io.wen   := wen
+    g_memory.io.waddr := io.in.paddr(22, 2)
+    g_memory.io.wdata := io.in.pwdata(23, 0).asTypeOf(Vec(1, UInt(24.W)))
+    g_memory.io.wstrobe := 1.U
+    when (io.in.psel) {
+      pready := true.B
+      when (io.in.pwrite){
+        wen := true.B
       }
+    } otherwise {
+      pready := false.B
+    }
 
     // output for display
     // vga_ctrl.io.vga_data := g_memory.read(Cat(vga_ctrl.io.h_addr, vga_ctrl.io.v_addr(8, 0)))
-    vga_ctrl.io.vga_data := g_memory(Cat(vga_ctrl.io.v_addr, vga_ctrl.io.h_addr))
+    g_memory.io.raddr := Cat(vga_ctrl.io.v_addr, vga_ctrl.io.h_addr)
+    vga_ctrl.io.vga_data := g_memory.io.rdata.head
     io.vga.hsync <> vga_ctrl.io.hsync
     io.vga.vsync <> vga_ctrl.io.vsync
     io.vga.valid <> vga_ctrl.io.valid

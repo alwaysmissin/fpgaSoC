@@ -1,8 +1,9 @@
-V_FILE_GEN   = build/ysyxSoCTop.sv
-V_FILE_FINAL = build/ysyxSoCFull.v
+V_FILE_GEN   = build/ysyxSoCASIC.sv
+V_FILE_FINAL = build/ysyxSoCFull.sv
 SCALA_FILES = $(shell find src/ -name "*.scala")
 MILL_VERSION = 0.11.8
 PERIP_PATH   = perip
+FPGA_SOC_PATH = /mnt/e/coding/graduation/cpu/cpu.srcs/sources_1/new/soc
 
 $(V_FILE_FINAL): $(SCALA_FILES)
 	MILL_VERSION=$(MILL_VERSION) mill -i ysyxsoc.runMain ysyx.Elaborate --target-dir $(@D)
@@ -16,6 +17,13 @@ verilog: $(V_FILE_FINAL)
 npc: verilog
 	cp $(V_FILE_FINAL) $(NPC_HOME)/vsrc/ysyxSoCFull.v
 	cp -r $(PERIP_PATH) $(NPC_HOME)/vsrc
+
+fpga: verilog
+	rm -rf $(FPGA_SOC_PATH)
+	mkdir -pv $(FPGA_SOC_PATH)
+	cp $(V_FILE_FINAL) $(FPGA_SOC_PATH)
+	cp -r $(PERIP_PATH) $(FPGA_SOC_PATH)
+
 
 clean:
 	-rm -rf build/
