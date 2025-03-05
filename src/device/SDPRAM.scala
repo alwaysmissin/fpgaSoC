@@ -6,6 +6,7 @@ import ysyx.Config.FPGAPlatform
 import ysyx.xpm_memory_sdpram
 
 class SDPRAM_SYNC[T <: Data](size: Int, t: T, lineSize: Int = 1) extends Module{
+  override val desiredName = s"SDPRAM_SYNC_${size}_${t.getWidth}_${lineSize}"
   val addrBits = log2Ceil(size)
   val io = IO(new Bundle{
     val raddr = Input(UInt(addrBits.W))
@@ -54,6 +55,17 @@ class SDPRAM_SYNC[T <: Data](size: Int, t: T, lineSize: Int = 1) extends Module{
         mem.write(io.waddr, io.wdata, io.wstrobe.asBools)
       }
     }
+  }
+  def read(addr: UInt): Vec[T] = {
+    io.raddr := addr
+    io.rdata // 实际需要根据SyncReadMem特性处理同步延迟
+  }
+
+  def write(cond: Bool, addr: UInt, data: Vec[T], mask: UInt = "b1".U): Unit = {
+    io.wen := cond
+    io.waddr := addr
+    io.wdata := data
+    io.wstrobe := mask
   }
 }
 

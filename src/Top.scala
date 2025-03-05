@@ -8,28 +8,33 @@ import freechips.rocketchip.diplomacy.LazyModule
 object Config {
   def hasChipLink: Boolean = false
   def sdramUseAXI: Boolean = true
-  val FPGAPlatform = true
+  var FPGAPlatform = true
 }
 
-// class ysyxSoCTop extends Module {
-//   implicit val config: Parameters = new Config(new Edge32BitConfig ++ new DefaultRV32Config)
+class ysyxSoCTop extends Module {
+  implicit val config: Parameters = new Config(new Edge32BitConfig ++ new DefaultRV32Config)
 
-//   val io = IO(new Bundle { })
-//   val dut = LazyModule(new ysyxSoCASIC)
-//   val mdut = Module(dut.module)
-//   mdut.dontTouchPorts()
-//   mdut.intr_from_chipSlave := DontCare
-//   mdut.spi := DontCare
-//   mdut.uart := DontCare
-//   mdut.sdram := DontCare
-//   mdut.gpio := DontCare
-//   mdut.ps2 := DontCare
-//   mdut.vga := DontCare
-// }
+  val io = IO(new Bundle { })
+  val dut = LazyModule(new ysyxSoCFull)
+  val mdut = Module(dut.module)
+  mdut.dontTouchPorts()
+  mdut.externalPins := DontCare
+}
 
 object Elaborate extends App {
+  import ysyx.Config._
+  if (args.length > 0 && args(0) == "fpga") {
+    print("Generate for FPGA\n")
+  } else {
+    FPGAPlatform = false
+    print("Generate for Simulation\n")
+  }
   implicit val config: Parameters = new Config(new Edge32BitConfig ++ new DefaultRV32Config)
   val firtoolOptions = Array("--disable-annotation-unknown")
-  val dut = LazyModule(new ysyxSoCASIC)
-  circt.stage.ChiselStage.emitSystemVerilogFile(dut.module, args, firtoolOptions)
+  if (FPGAPlatform){
+    val dut = LazyModule(new ysyxSoCASIC)
+    circt.stage.ChiselStage.emitSystemVerilogFile(dut.module, args, firtoolOptions)
+  } else {
+    circt.stage.ChiselStage.emitSystemVerilogFile(new ysyxSoCTop, args, firtoolOptions)
+  }
 }
