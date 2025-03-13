@@ -8,11 +8,12 @@ import org.chipsalliance.cde.config.Parameters
 import freechips.rocketchip.diplomacy._
 import freechips.rocketchip.util._
 import ysyx.SDPRAM_SYNC
+import ysyx.Config.FPGAPlatform
 
 class VGAIO extends Bundle {
-  val r = Output(UInt(8.W))
-  val g = Output(UInt(8.W))
-  val b = Output(UInt(8.W))
+  val r = if(FPGAPlatform) Output(UInt(4.W)) else Output(UInt(8.W))
+  val g = if(FPGAPlatform) Output(UInt(4.W)) else Output(UInt(8.W))
+  val b = if(FPGAPlatform) Output(UInt(4.W)) else Output(UInt(8.W))
   val hsync = Output(Bool())
   val vsync = Output(Bool())
   val valid = Output(Bool())
@@ -33,15 +34,15 @@ class vga_ctrl extends BlackBox {
   val io = IO(new Bundle {
     val pclk = Input(Clock())
     val reset = Input(Bool())
-    val vga_data = Input(UInt(24.W))
+    val vga_data = Input(UInt(12.W)) // rgb4444
     val h_addr = Output(UInt(10.W))
     val v_addr = Output(UInt(10.W))
     val hsync = Output(Bool())
     val vsync = Output(Bool())
     val valid = Output(Bool())
-    val vga_r = Output(UInt(8.W))
-    val vga_g = Output(UInt(8.W))
-    val vga_b = Output(UInt(8.W))
+    val vga_r = Output(UInt(4.W))
+    val vga_g = Output(UInt(4.W))
+    val vga_b = Output(UInt(4.W))
   })
 }
 
@@ -54,7 +55,8 @@ class vgaChisel extends RawModule {
     vga_ctrl.io.reset <> io.reset
     // val g_memory = Mem(0x7FFFF, UInt(24.W))
     // val g_memory = SDPRAM_SYNC(0x7FFFF, UInt(24.W))
-    val g_memory = Module(new SDPRAM_SYNC(0xFFFF, UInt(24.W)))
+    // 640*480
+    val g_memory = Module(new SDPRAM_SYNC(0x1FFFF, UInt(12.W)))
     // loadMemoryFromFileInline(g_memory, "/home/jiunian/Program/ysyx-workbench/nvboard/example/resource/test.hex")
 
     // write to gpu memory
@@ -68,25 +70,29 @@ class vgaChisel extends RawModule {
     // g_memory.io.waddr := io.in.paddr(22, 2)
     // g_memory.io.wdata := io.in.pwdata(23, 0).asTypeOf(g_memory.io.wdata)
     // g_memory.io.wstrobe := 1.U
-    g_memory.write(io.in.psel && io.in.pwrite, io.in.paddr(22, 2), io.in.pwdata(23, 0).asTypeOf(g_memory.io.wdata))
-    // when (io.in.psel) {
-    //   pready := true.B
-    //   when (io.in.pwrite){
-    //     wen := true.B
-    //   }
-    // } otherwise {
-    //   pready := false.B
-    // }
+    val wdata = Cat((io.in.pwdata(31, 24) >> 4)(3, 0), 
+                    (io.in.pwdata(23, 16) >> 4)(3, 0), 
+                    (io.in.pwdata(15, 8 ) >> 4)(3, 0), 
+                    (io.in.pwdata(7 , 0 ) >> 4)(3, 0))
+    g_memory.write(io.in.psel && io.in.pwrite, io.in.paddr(22, 2), wdata(11, 0).asTypeOf(g_memory.io.wdata))
+    when (io.in.psel) {
+      pready := true.B
+      when (io.in.pwrite){
+        wen := true.B
+      }
+    } otherwise {
+      pready := false.B
+    }
 
     // output for display
     // vga_ctrl.io.vga_data := g_memory.read(Cat(vga_ctrl.io.h_addr, vga_ctrl.io.v_addr(8, 0)))
-    vga_ctrl.io.vga_data := g_memory.read(Cat(vga_ctrl.io.h_addr, vga_ctrl.io.v_addr)).head
+    vga_ctrl.io.vga_data := g_memory.read((vga_ctrl.io.h_addr >> 1) + (vga_ctrl.io.v_addr >> 1) * 320.U).head
     io.vga.hsync <> vga_ctrl.io.hsync
     io.vga.vsync <> vga_ctrl.io.vsync
     io.vga.valid <> vga_ctrl.io.valid
-    io.vga.r <> vga_ctrl.io.vga_r
-    io.vga.g <> vga_ctrl.io.vga_g
-    io.vga.b <> vga_ctrl.io.vga_b
+    io.vga.r <> {if(FPGAPlatform) vga_ctrl.io.vga_r else Cat(vga_ctrl.io.vga_r, 0.U(4.W))}
+    io.vga.g <> {if(FPGAPlatform) vga_ctrl.io.vga_g else Cat(vga_ctrl.io.vga_g, 0.U(4.W))}
+    io.vga.b <> {if(FPGAPlatform) vga_ctrl.io.vga_b else Cat(vga_ctrl.io.vga_b, 0.U(4.W))}
   }
 }
 

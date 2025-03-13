@@ -9,8 +9,8 @@ import freechips.rocketchip.diplomacy._
 import freechips.rocketchip.util._
 
 class GPIOIO extends Bundle {
-  val out = Output(UInt(16.W))
-  val in = Input(UInt(16.W))
+  val out = Output(UInt(8.W))
+  val in = Input(UInt(8.W))
   // val seg = Output(Vec(8, UInt(8.W)))
 }
 
@@ -52,8 +52,8 @@ class BitsToSeg extends Module {
 
 class gpioChisel extends Module {
   val io = IO(new GPIOCtrlIO)
-  val gpioInReg = RegInit(0.U(16.W))
-  val gpioOutReg = RegInit(0.U(16.W))
+  val gpioInReg = RegInit(0.U(8.W))
+  val gpioOutReg = RegInit(0.U(8.W))
   val segReg = RegInit(0x12345678.U(32.W))
   io.gpio.out <> gpioOutReg
 //  io.gpio.seg <> segReg

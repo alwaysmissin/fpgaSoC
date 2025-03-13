@@ -1,5 +1,5 @@
 BUILD_DIR    = build/
-gen_args ?= "fpga"
+gen_args ?= fpga
 
 ifeq ($(gen_args), fpga)
 V_FILE_GEN = build/ysyxSoCASIC.sv

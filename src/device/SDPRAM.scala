@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util.log2Ceil
 import ysyx.Config.FPGAPlatform
 import ysyx.xpm_memory_sdpram
+import chisel3.util.experimental.loadMemoryFromFileInline
 
 class SDPRAM_SYNC[T <: Data](size: Int, t: T, lineSize: Int = 1) extends Module{
   override val desiredName = s"SDPRAM_SYNC_${size}_${t.getWidth}_${lineSize}"

@@ -1,15 +1,15 @@
 module vga_ctrl(
     input           pclk,     //25MHz时钟
     input           reset,    //置位
-    input  [23:0]   vga_data, //上层模块提供的VGA颜色数据
+    input  [11:0]   vga_data, //上层模块提供的VGA颜色数据
     output [9:0]    h_addr,   //提供给上层模块的当前扫描像素点坐标
     output [9:0]    v_addr,
     output          hsync,    //行同步和列同步信号
     output          vsync,
     output          valid,    //消隐信号
-    output [7:0]    vga_r,    //红绿蓝颜色信号
-    output [7:0]    vga_g,
-    output [7:0]    vga_b
+    output [3:0]    vga_r,    //红绿蓝颜色信号
+    output [3:0]    vga_g,
+    output [3:0]    vga_b
     );
 
   //640x480分辨率下的VGA参数设置
@@ -61,7 +61,7 @@ module vga_ctrl(
   assign h_addr = h_valid ? (x_cnt - 10'd145) : {10{1'b0}};
   assign v_addr = v_valid ? (y_cnt - 10'd36) : {10{1'b0}};
   //设置输出的颜色值
-  assign vga_r = vga_data[23:16];
-  assign vga_g = vga_data[15:8];
-  assign vga_b = vga_data[7:0];
+  assign vga_r = vga_data[11:8];
+  assign vga_g = vga_data[7 :4];
+  assign vga_b = vga_data[3 :0];
 endmodule

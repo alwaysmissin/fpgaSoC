@@ -9,6 +9,7 @@ import freechips.rocketchip.amba.apb._
 import org.chipsalliance.cde.config.Parameters
 import freechips.rocketchip.diplomacy._
 import freechips.rocketchip.util._
+import ysyx.Config.FPGAPlatform
 
 class SDRAMIO extends Bundle {
   val clk = Output(Bool()) // 时钟信号
@@ -239,13 +240,16 @@ class AXI4SDRAM(address: Seq[AddressSet])(implicit p: Parameters) extends LazyMo
   lazy val module = new Impl
   class Impl extends LazyModuleImp(this) {
     val (in, _) = node.in(0)
-    val sdram_bundle = IO(new SDRAMIO)
-
-    val msdram = Module(new sdram_top_axi)
-    msdram.io.clock := clock
-    msdram.io.reset := reset.asBool
-    msdram.io.in <> in
-    sdram_bundle <> msdram.io.sdram
+    val sdram_bundle = if (FPGAPlatform) IO(chiselTypeOf(in)) else IO(new SDRAMIO)
+    if (FPGAPlatform){
+      sdram_bundle <> in
+    } else {
+      val msdram = Module(new sdram_top_axi)
+      msdram.io.clock := clock
+      msdram.io.reset := reset.asBool
+      msdram.io.in <> in
+      sdram_bundle <> msdram.io.sdram
+    }
   }
 }
 
