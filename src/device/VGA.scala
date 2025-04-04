@@ -51,7 +51,9 @@ class vgaChisel extends RawModule {
   withClockAndReset(io.clock, io.reset){
 
     val vga_ctrl = Module(new vga_ctrl())
-    vga_ctrl.io.pclk <> io.clock
+    val clk_div = RegInit(false.B)
+    clk_div := !clk_div
+    vga_ctrl.io.pclk := clk_div.asClock
     vga_ctrl.io.reset <> io.reset
     // val g_memory = Mem(0x7FFFF, UInt(24.W))
     // val g_memory = SDPRAM_SYNC(0x7FFFF, UInt(24.W))

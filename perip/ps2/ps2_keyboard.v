@@ -17,7 +17,7 @@ module ps2_keyboard(clk,clrn,ps2_clk,ps2_data,data,
         ps2_clk_sync <=  {ps2_clk_sync[1:0],ps2_clk};
     end
 
-    wire sampling = ps2_clk_sync[2] & ~ps2_clk_sync[1];
+    wire sampling = ps2_clk_sync[1] & ~ps2_clk_sync[0];
 
     always @(posedge clk) begin
         if (clrn == 0) begin // reset

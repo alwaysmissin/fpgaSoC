@@ -32,19 +32,21 @@ class ysyxSoCASIC(implicit p: Parameters) extends LazyModule {
   val chipMaster = if (Config.hasChipLink) Some(LazyModule(new ChipLinkMaster)) else None
   val chiplinkNode = if (Config.hasChipLink) Some(AXI4SlaveNodeGenerator(p(ExtBus), ChipLinkParam.allSpace)) else None
 
-  val luart = LazyModule(new APBUart16550(AddressSet.misaligned(0x10000000, 0x1000)))
-  val lgpio = LazyModule(new APBGPIO(AddressSet.misaligned(0x10002000, 0x10)))
-  val lkeyboard = LazyModule(new APBKeyboard(AddressSet.misaligned(0x10011000, 0x8)))
+  val luart = LazyModule(new APBUart16550(AddressSet.misaligned(0x20030000, 0x1000)))
+  val lgpio = LazyModule(new APBGPIO(AddressSet.misaligned(0x20031000, 0x10)))
+  val lkeyboard = LazyModule(new APBKeyboard(AddressSet.misaligned(0x20032000, 0x8)))
+
   val lvga = LazyModule(new APBVGA(AddressSet.misaligned(0x21000000, 0x200000)))
+
   // val lspi  = LazyModule(new APBSPI(
   //   // AddressSet.misaligned(0x10001000, 0x1000) ++    // SPI controller
   //   AddressSet.misaligned(0x30000000, 0x10000000)   // XIP flash
   // ))
   // val lpsram = LazyModule(new APBPSRAM(AddressSet.misaligned(0x80000000L, 0x400000)))
   // val lmrom = LazyModule(new AXI4MROM(AddressSet.misaligned(0x20000000, 0x1000)))
-  val sramNode = AXI4RAM(AddressSet.misaligned(0x0f000000, 0x2000).head, false, true, 4, None, Nil, false)
+  val sramNode = AXI4RAM(AddressSet.misaligned(0x30000000, 0x2000).head, false, true, 4, None, Nil, false)
 
-  val sdramAddressSet = AddressSet.misaligned(0x80000000L, 0x2000000)
+  val sdramAddressSet = AddressSet.misaligned(0x10000000L, 0x2000000)
   val lsdram_apb = if (!Config.sdramUseAXI) Some(LazyModule(new APBSDRAM (sdramAddressSet))) else None
   val lsdram_axi = if ( Config.sdramUseAXI) Some(LazyModule(new AXI4SDRAM(sdramAddressSet))) else None
 
@@ -90,14 +92,14 @@ class ysyxSoCASIC(implicit p: Parameters) extends LazyModule {
     // val psram = IO(chiselTypeOf(lpsram.module.qspi_bundle))
     val sdram = IO(chiselTypeOf(sdramBundle))
     val gpio = IO(chiselTypeOf(lgpio.module.gpio_bundle))
-    val ps2 = IO(chiselTypeOf(lkeyboard.module.ps2_bundle))
+    val ps2 = IO(chiselTypeOf(lkeyboard.module.buttons))
     val vga = IO(chiselTypeOf(lvga.module.vga_bundle))
     uart <> luart.module.uart
     // spi <> lspi.module.spi_bundle
     // psram <> lpsram.module.qspi_bundle
     sdram <> sdramBundle
     gpio <> lgpio.module.gpio_bundle
-    ps2 <> lkeyboard.module.ps2_bundle
+    ps2 <> lkeyboard.module.buttons
     vga <> lvga.module.vga_bundle
   }
 }
