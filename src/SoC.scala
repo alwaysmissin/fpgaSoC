@@ -11,6 +11,7 @@ import freechips.rocketchip.amba.axi4._
 import freechips.rocketchip.amba.apb._
 import freechips.rocketchip.system.SimAXIMem
 import ysyx.Config.FPGAPlatform
+import ysyx.Config.nrInterrupt
 
 object AXI4SlaveNodeGenerator {
   def apply(params: Option[MasterPortParams], address: Seq[AddressSet])(implicit valName: ValName) =
@@ -80,8 +81,11 @@ class ysyxSoCASIC(implicit p: Parameters) extends LazyModule {
     }
 
     // connect interrupt signal to cpu
-    val intr_from_chipSlave = IO(Input(Bool()))
-    cpu.module.interrupt := intr_from_chipSlave
+    // val intr_from_chipSlave = IO(Input(UInt(nrInterrupt.W)))
+    val interrupt = Wire(Vec(nrInterrupt, Bool()))
+    interrupt(0) := luart.module.interrupt
+    interrupt(1) := false.B
+    cpu.module.interrupt := interrupt.asUInt
 
     val sdramBundle = if (Config.sdramUseAXI) lsdram_axi.get.module.sdram_bundle
                       else                    lsdram_apb.get.module.sdram_bundle
@@ -134,7 +138,7 @@ class ysyxSoCFull(implicit p: Parameters) extends LazyModule {
       fpga.slave.map(_ := DontCare)
     }
 
-    masic.intr_from_chipSlave := false.B
+    // masic.intr_from_chipSlave := false.B
 
     // val flash = Module(new flash)
     // flash.io <> masic.spi

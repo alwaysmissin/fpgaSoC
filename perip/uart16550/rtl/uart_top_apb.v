@@ -13,6 +13,7 @@ module uart_top_apb (
      , input   wire [3:0]  in_pstrb
      , input   wire        uart_rx       // serial output
      , output  wire        uart_tx       // serial input
+     , output  wire        interrupt
 );
    //--------------------------------------------------
    wire   rtsn;
@@ -21,7 +22,6 @@ module uart_top_apb (
    wire   dsr_pad_i=1'b0;
    wire   ri_pad_i =1'b0;
    wire   dcd_pad_i=1'b0;
-   wire   interrupt;
    //--------------------------------------------------------
    wire       reg_we;   // Write enable for registers
    wire       reg_re;   // Read enable for registers

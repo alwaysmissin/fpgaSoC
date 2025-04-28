@@ -8,6 +8,7 @@ import freechips.rocketchip.diplomacy.LazyModule
 object Config {
   def hasChipLink: Boolean = false
   def sdramUseAXI: Boolean = true
+  def nrInterrupt: Int = 2
   var FPGAPlatform = true
 }
 

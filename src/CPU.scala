@@ -8,6 +8,7 @@ import freechips.rocketchip.subsystem._
 import freechips.rocketchip.amba.axi4._
 import freechips.rocketchip.diplomacy._
 import freechips.rocketchip.util._
+import ysyx.Config.nrInterrupt
 
 object CPUAXI4BundleParameters {
   def apply() = AXI4BundleParameters(addrBits = 32, dataBits = 32, idBits = ChipLinkParam.idBits)
@@ -17,7 +18,7 @@ class ysyx_00000000 extends BlackBox {
   val io = IO(new Bundle {
     val clock = Input(Clock())
     val reset = Input(Reset())
-    val io_interrupt = Input(Bool())
+    val io_interrupt = Input(UInt(nrInterrupt.W))
     val io_master = AXI4Bundle(CPUAXI4BundleParameters())
     val io_slave = Flipped(AXI4Bundle(CPUAXI4BundleParameters()))
   })
@@ -32,7 +33,7 @@ class CPU(idBits: Int)(implicit p: Parameters) extends LazyModule {
   lazy val module = new Impl
   class Impl extends LazyModuleImp(this) {
     val (master, _) = masterNode.out(0)
-    val interrupt = IO(Input(Bool()))
+    val interrupt = IO(Input(UInt(nrInterrupt.W)))
     val slave = IO(Flipped(AXI4Bundle(CPUAXI4BundleParameters())))
 
     val cpu = Module(new ysyx_00000000)
