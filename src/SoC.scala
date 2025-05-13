@@ -83,8 +83,10 @@ class ysyxSoCASIC(implicit p: Parameters) extends LazyModule {
     // connect interrupt signal to cpu
     // val intr_from_chipSlave = IO(Input(UInt(nrInterrupt.W)))
     val interrupt = Wire(Vec(nrInterrupt, Bool()))
-    interrupt(0) := luart.module.interrupt
-    interrupt(1) := false.B
+    for (i <- 0 until nrInterrupt) interrupt(i) := false.B
+    // interrupt(0) := luart.module.interrupt
+    // interrupt(1) := luart.module.interrupt
+    // interrupt(2) := luart.module.interrupt
     cpu.module.interrupt := interrupt.asUInt
 
     val sdramBundle = if (Config.sdramUseAXI) lsdram_axi.get.module.sdram_bundle

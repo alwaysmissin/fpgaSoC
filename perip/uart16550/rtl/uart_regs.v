@@ -495,6 +495,7 @@ always @(posedge clk or posedge wb_rst_i)
     if (wb_we_i && wb_addr_i==`UART_REG_IE)
         if (dlab)
         begin
+            $write("write divisor latch high with %d\n", wb_dat_i);
             dl[`UART_DL2] <= #1 wb_dat_i;
         end
         else
@@ -546,6 +547,7 @@ always @(posedge clk or posedge wb_rst_i)
     if (wb_we_i && wb_addr_i==`UART_REG_TR)
         if (dlab)
         begin
+            $write("write divisor latch low with %d\n", wb_dat_i);
             dl[`UART_DL1] <= #1 wb_dat_i;
             start_dlc <= #1 1'b1; // enable DL counter
             tf_push <= #1 1'b0;
